@@ -508,13 +508,15 @@ function changeQty(id, act) {
   else if (act === 'minus') cur.qty -= 1;
   if (cur.qty <= 0) delete orderState.cart[id];
   saveCart();
-  renderCartSheet();
+  const noteEl = document.getElementById('order-note');
+  const note = noteEl ? noteEl.value : '';
+  renderCartSheet(note);
   renderOrder();
 }
 function openCart() {
   renderCartSheet();
 }
-function renderCartSheet() {
+function renderCartSheet(note) {
   const items = cartList();
   const list = items.length ? items.map(it =>
     '<div class="cart-item"><div style="flex:1;min-width:0"><div class="cart-item-name">' + esc(it.name) + '</div>' +
@@ -527,7 +529,7 @@ function renderCartSheet() {
     '<div class="sheet"><div class="sheet-head"><span class="sheet-title">确认点餐</span>' +
     '<button class="icon-btn" data-act="close" aria-label="关闭"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>' +
     list +
-    '<textarea class="cart-note form-item" id="order-note" placeholder="备注（选填）：口味、忌口…" rows="2" style="width:100%;border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:14px"></textarea>' +
+    '<textarea class="cart-note form-item" id="order-note" placeholder="备注（选填）：口味、忌口…" rows="2" style="width:100%;border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:14px">' + (note ? esc(note) : '') + '</textarea>' +
     '<div class="cart-foot"><span class="muted" style="font-size:13px">共 ' + cartCount() + ' 件</span>' +
     '<span class="price" style="font-size:20px">' + money(cartTotal()) + '</span></div>' +
     '<button class="btn btn-primary btn-block" style="margin-top:12px;padding:14px" data-act="submit">提交订单</button></div>'
@@ -551,12 +553,12 @@ async function doSubmit() {
     orderState.cart = {};
     saveCart();
     renderOrder();
-    showSuccess(order.id, total);
+    showSuccess(oid, total);
     beep();
   } catch (e) {
     console.error(e);
     toast('下单失败：' + e.message, true);
-    renderCartSheet();
+    renderCartSheet(note);
   }
 }
 function showSuccess(id, total) {
@@ -609,6 +611,16 @@ orderApp.addEventListener('click', function (e) {
 document.addEventListener('click', function (e) {
   const el = e.target.closest('[data-act="close"]');
   if (el) closeSheet();
+});
+// 购物车/结果弹层挂在 #modal-root（点餐视图之外），在这里补一层点击处理：加减数量、提交订单、我的订单
+document.addEventListener('click', function (e) {
+  const el = e.target.closest('[data-act]');
+  if (!el) return;
+  const act = el.dataset.act;
+  const id = el.dataset.id;
+  if (act === 'plus' || act === 'minus') changeQty(id, act);
+  else if (act === 'submit') doSubmit();
+  else if (act === 'showHistory') showHistory();
 });
 
 // ==================== 接单台 ====================
