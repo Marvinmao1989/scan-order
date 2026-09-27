@@ -346,7 +346,8 @@ async function uploadImage(file) {
   const token = await authToken();
   const ext = (file.name.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g, '');
   const path = 'dishes/' + Date.now() + '-' + Math.random().toString(36).slice(2, 8) + '.' + ext;
-  const h = Object.assign({ apikey: CONFIG.SUPABASE_ANON_KEY, 'x-upsert': 'true' }, token ? { Authorization: 'Bearer ' + token } : {});
+  const h = Object.assign({ apikey: CONFIG.SUPABASE_ANON_KEY }, token ? { Authorization: 'Bearer ' + token } : {});
+  // 不用 x-upsert：路径含时间戳+随机串不会重名，纯新增上传只需要“上传”权限即可
   const res = await fetch(CONFIG.SUPABASE_URL + '/storage/v1/object/images/' + path, { method: 'POST', headers: h, body: file });
   if (!res.ok) throw new Error('图片上传失败：' + res.status);
   return CONFIG.SUPABASE_URL + '/storage/v1/object/public/images/' + path;
@@ -541,11 +542,11 @@ async function doSubmit() {
   if (btn) { btn.disabled = true; btn.textContent = '提交中…'; }
   try {
     const total = cartTotal();
-    const ins = await dbInsert('orders', { table_no: orderState.tableNo, note, total, status: 1, pay_status: 0 }, { public: true });
-    const order = ins[0];
-    await dbInsert('order_items', items.map(it => ({ order_id: order.id, dish_name: it.name, price: it.price, qty: it.qty })), { public: true });
+    const oid = Date.now();   // 单号由顾客端生成，避免匿名下单后数据库回读订单（顾客无读订单权限）
+    await dbInsert('orders', { id: oid, table_no: orderState.tableNo, note, total, status: 1, pay_status: 0 }, { public: true, prefer: 'return=minimal' });
+    await dbInsert('order_items', items.map(it => ({ order_id: oid, dish_name: it.name, price: it.price, qty: it.qty })), { public: true, prefer: 'return=minimal' });
     const hist = JSON.parse(localStorage.getItem(ORDERS_KEY) || '[]');
-    hist.unshift({ id: order.id, table: orderState.tableNo, total, time: Date.now() });
+    hist.unshift({ id: oid, table: orderState.tableNo, total, time: Date.now() });
     localStorage.setItem(ORDERS_KEY, JSON.stringify(hist.slice(0, 50)));
     orderState.cart = {};
     saveCart();
