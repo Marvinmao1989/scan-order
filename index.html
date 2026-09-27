@@ -352,7 +352,7 @@ async function login(email, password) {
 }
 async function dbGet(table, query, opts = {}) {
   const token = opts.public ? null : await authToken();
-  return sbFetch('/rest/v1/' + table + '?' + query, { token });
+  return sbFetch('/rest/v1/' + table + '?' + query, { token, headers: opts.headers || {} });
 }
 async function dbInsert(table, rows, opts = {}) {
   const token = opts.public ? null : await authToken();
@@ -464,6 +464,14 @@ function dishImgs(d) {
     if (a.length) return a;
   }
   return d.image_url ? [d.image_url] : [];
+}
+function customerId() {
+  let id = localStorage.getItem('sco_cuid');
+  if (!id) {
+    id = 'c' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 10);
+    localStorage.setItem('sco_cuid', id);
+  }
+  return id;
 }
 
 async function loadOrder() {
@@ -627,7 +635,7 @@ async function doSubmit() {
   try {
     const total = cartTotal();
     const oid = Date.now();   // 单号由顾客端生成，避免匿名下单后数据库回读订单（顾客无读订单权限）
-    await dbInsert('orders', { id: oid, table_no: orderState.tableNo, note, total, status: 1, pay_status: 0 }, { public: true, prefer: 'return=minimal' });
+    await dbInsert('orders', { id: oid, table_no: orderState.tableNo, note, total, status: 1, pay_status: 0, customer_id: customerId() }, { public: true, prefer: 'return=minimal' });
     await dbInsert('order_items', items.map(it => ({ order_id: oid, dish_name: it.name, price: it.price, qty: it.qty })), { public: true, prefer: 'return=minimal' });
     const hist = JSON.parse(localStorage.getItem(ORDERS_KEY) || '[]');
     hist.unshift({ id: oid, table: orderState.tableNo, total, time: Date.now() });
@@ -661,18 +669,35 @@ function showSuccess(id, total) {
     true
   );
 }
-function showHistory() {
-  const hist = JSON.parse(localStorage.getItem(ORDERS_KEY) || '[]');
-  const list = hist.length ? hist.map(o =>
-    '<div class="cart-item"><div style="flex:1"><div style="font-weight:700">单号 #' + o.id + ' · ' + esc(o.table) + ' 桌</div>' +
-    '<div class="muted" style="font-size:12px;margin-top:3px">' + fmtDateTime(new Date(o.time)) + '</div></div>' +
-    '<div style="text-align:right"><div class="price">' + money(o.total) + '</div>' +
-    '<div class="badge badge-warn" style="margin-top:4px">已下单</div></div></div>'
-  ).join('') : '<div class="empty">本机还没有订单记录</div>';
+const ORDER_STATUS = { 1: ['新订单', 'badge-new'], 2: ['制作中', 'badge-warn'], 3: ['已完成', 'badge-ok'], 0: ['已取消', 'badge-muted'] };
+async function showHistory() {
+  const cid = customerId();
+  let rows = null;
+  try {
+    rows = await dbGet('orders', 'select=id,table_no,total,status,created_at&customer_id=eq.' + encodeURIComponent(cid) + '&order=id.desc&limit=20', { public: true, headers: { 'X-Customer-Id': cid } });
+  } catch (e) { console.error(e); rows = null; }
+  let list = '';
+  if (rows && rows.length) {
+    list = rows.map(function (o) {
+      const st = ORDER_STATUS[o.status] || ['未知', 'badge-muted'];
+      return '<div class="cart-item"><div style="flex:1"><div style="font-weight:700">单号 #' + o.id + ' · ' + esc(o.table_no) + ' 桌</div>' +
+        '<div class="muted" style="font-size:12px;margin-top:3px">' + fmtDateTime(o.created_at) + '</div></div>' +
+        '<div style="text-align:right"><div class="price">' + money(o.total) + '</div>' +
+        '<span class="badge ' + st[1] + '" style="margin-top:4px">' + st[0] + '</span></div></div>';
+    }).join('');
+  } else {
+    const hist = JSON.parse(localStorage.getItem(ORDERS_KEY) || '[]');
+    list = hist.length ? hist.map(function (o) {
+      return '<div class="cart-item"><div style="flex:1"><div style="font-weight:700">单号 #' + o.id + ' · ' + esc(o.table) + ' 桌</div>' +
+        '<div class="muted" style="font-size:12px;margin-top:3px">' + fmtDateTime(new Date(o.time)) + '</div></div>' +
+        '<div style="text-align:right"><div class="price">' + money(o.total) + '</div>' +
+        '<span class="badge badge-warn" style="margin-top:4px">已下单</span></div></div>';
+    }).join('') : '<div class="empty">还没有找到你的订单</div>';
+  }
   openOverlay(
-    '<div class="sheet"><div class="sheet-head"><span class="sheet-title">我的订单（本机）</span>' +
+    '<div class="sheet"><div class="sheet-head"><span class="sheet-title">我的订单</span>' +
     '<button class="icon-btn" data-act="close" aria-label="关闭"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>' +
-    list + '<div class="muted" style="font-size:12px;line-height:1.7;padding-top:10px">订单状态请以店员叫号为准。换手机后本机记录不会同步。</div></div>'
+    list + '<div class="muted" style="font-size:12px;line-height:1.7;padding-top:10px">订单状态以店员叫号/管理后台为准。此列表按你的手机身份保存，换设备后看不到旧订单。</div></div>'
   );
 }
 
@@ -703,7 +728,9 @@ document.addEventListener('click', function (e) {
   const id = el.dataset.id;
   if (act === 'plus' || act === 'minus') changeQty(id, act);
   else if (act === 'clearCart') clearCart();
-  else if (act === 'add') { addDish(id); closeSheet(); }
+  else if (act === 'add') {
+    if (e.target.closest('#modal-root')) { addDish(id); closeSheet(); }
+  }
   else if (act === 'thumb') {
     const main = document.getElementById('detail-main');
     if (main) {
