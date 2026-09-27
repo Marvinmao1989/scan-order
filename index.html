@@ -138,6 +138,7 @@ img{display:block}
 .cart-go{background:var(--brand);color:#fff;font-weight:800;font-size:15px;padding:10px 20px;border-radius:10px}
 .cart-item{display:flex;align-items:center;gap:10px;padding:12px 0;border-bottom:1px solid var(--line)}
 .cart-item:last-child{border-bottom:none}
+.cart-thumb{width:44px;height:44px;border-radius:10px;object-fit:cover;background:#EFE6DA;flex-shrink:0;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:16px}
 .cart-item-name{flex:1;font-size:15px;font-weight:600}
 .cart-item-price{font-size:13px;color:var(--muted)}
 .stepper{display:flex;align-items:center;gap:8px}
@@ -497,7 +498,7 @@ function addDish(id) {
   const d = orderState.dishes.find(x => String(x.id) === String(id));
   if (!d) return;
   const cur = orderState.cart[id];
-  orderState.cart[id] = cur ? Object.assign({}, cur, { qty: cur.qty + 1 }) : { id, name: d.name, price: d.price, image: d.image_url || '', qty: 1 };
+  orderState.cart[id] = cur ? Object.assign({}, cur, { qty: cur.qty + 1 }) : { id, name: d.name, price: d.price, image: d.image_url || '', initial: d.initial, ph: d.ph, qty: 1 };
   saveCart();
   renderOrder();
 }
@@ -516,10 +517,21 @@ function changeQty(id, act) {
 function openCart() {
   renderCartSheet();
 }
+function clearCart() {
+  orderState.cart = {};
+  saveCart();
+  renderOrder();
+  closeSheet();
+  toast('购物车已清空');
+}
 function renderCartSheet(note) {
   const items = cartList();
   const list = items.length ? items.map(it =>
-    '<div class="cart-item"><div style="flex:1;min-width:0"><div class="cart-item-name">' + esc(it.name) + '</div>' +
+    '<div class="cart-item">' +
+    (it.image
+      ? '<img class="cart-thumb" src="' + esc(it.image) + '" alt="' + esc(it.name) + '">'
+      : '<div class="cart-thumb" style="background:' + (it.ph || '#C89B6C') + '">' + esc(it.initial || (it.name || '菜').charAt(0)) + '</div>') +
+    '<div style="flex:1;min-width:0"><div class="cart-item-name">' + esc(it.name) + '</div>' +
     '<div class="cart-item-price">' + money(it.price) + '</div></div>' +
     '<div class="stepper"><button data-act="minus" data-id="' + it.id + '" aria-label="减">−</button>' +
     '<span class="qty">' + it.qty + '</span>' +
@@ -527,7 +539,9 @@ function renderCartSheet(note) {
   ).join('') : '<div class="empty">购物车还是空的</div>';
   openOverlay(
     '<div class="sheet"><div class="sheet-head"><span class="sheet-title">确认点餐</span>' +
-    '<button class="icon-btn" data-act="close" aria-label="关闭"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>' +
+    '<span style="display:flex;gap:8px;align-items:center">' +
+    (items.length ? '<button class="btn btn-ghost btn-mini" data-act="clearCart" style="padding:5px 12px">清空</button>' : '') +
+    '<button class="icon-btn" data-act="close" aria-label="关闭"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></span></div>' +
     list +
     '<textarea class="cart-note form-item" id="order-note" placeholder="备注（选填）：口味、忌口…" rows="2" style="width:100%;border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:14px">' + (note ? esc(note) : '') + '</textarea>' +
     '<div class="cart-foot"><span class="muted" style="font-size:13px">共 ' + cartCount() + ' 件</span>' +
@@ -619,6 +633,7 @@ document.addEventListener('click', function (e) {
   const act = el.dataset.act;
   const id = el.dataset.id;
   if (act === 'plus' || act === 'minus') changeQty(id, act);
+  else if (act === 'clearCart') clearCart();
   else if (act === 'submit') doSubmit();
   else if (act === 'showHistory') showHistory();
 });
@@ -700,6 +715,8 @@ function orderCardHtml(o) {
     acts = (o.pay_status === 0 ? '<button class="btn btn-primary btn-mini" data-act="pay" data-id="' + o.id + '">确认收款</button>' : '') +
       '<button class="btn btn-ok btn-mini" data-act="done" data-id="' + o.id + '">完成</button>' +
       '<button class="btn btn-ghost btn-mini" data-act="cancel" data-id="' + o.id + '">取消</button>';
+  } else if (o.status === 3) {
+    acts = (o.pay_status === 0 ? '<button class="btn btn-primary btn-mini" data-act="pay" data-id="' + o.id + '">确认收款</button>' : '');
   }
   return '<div class="card order-card' + (o.status === 1 ? ' new' : '') + '">' +
     '<div class="order-top"><span class="order-table">' + esc(o.table_no) + ' 桌</span>' +
