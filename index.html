@@ -730,7 +730,7 @@ function renderAdminTabs() {
 }
 
 // ==================== 菜单管理 ====================
-const manageState = { categories: [], dishes: [], tab: 'dishes', settings: {}, editing: null, pendingImage: null };
+const manageState = { categories: [], dishes: [], tab: 'dishes', settings: {}, editing: null, pendingImage: null, catFilter: '' };
 
 async function loadManage() {
   const app = document.getElementById('manage-app');
@@ -771,16 +771,19 @@ function renderManage() {
   const { tab, categories, dishes, settings } = manageState;
   if (tab === 'dishes') {
     const catFilter = '<select id="dish-cat-filter" style="margin-right:8px;border:1px solid var(--line);border-radius:8px;padding:6px 10px;font-size:13px">' +
-      '<option value="">全部分类</option>' + categories.map(c => '<option value="' + c.id + '">' + esc(c.name) + '</option>').join('') + '</select>';
+      '<option value="">全部分类</option>' + categories.map(c => '<option value="' + c.id + '"' + (String(c.id) === String(manageState.catFilter) ? ' selected' : '') + '>' + esc(c.name) + '</option>').join('') + '</select>';
     body.innerHTML =
       '<div class="toolbar"><span style="display:flex;align-items:center">' + catFilter + '</span>' +
       '<button class="btn btn-primary btn-mini" data-act="newDish">＋ 新增菜品</button></div>' +
       '<div class="mlist" id="mlist-dishes"></div>';
     const listEl = body.querySelector('#mlist-dishes');
-    const fv = document.getElementById('dish-cat-filter').value;
+    const fv = manageState.catFilter;
     const rows = dishes.filter(d => !fv || String(d.category_id) === fv);
     listEl.innerHTML = rows.length ? rows.map(dishRowHtml).join('') : '<div class="empty">还没有菜品，点右上角新增</div>';
-    body.querySelector('#dish-cat-filter').addEventListener('change', renderManage);
+    body.querySelector('#dish-cat-filter').addEventListener('change', function (e) {
+      manageState.catFilter = e.target.value;
+      renderManage();
+    });
   } else if (tab === 'categories') {
     body.innerHTML =
       '<div class="toolbar"><span></span><button class="btn btn-primary btn-mini" data-act="newCat">＋ 新增分类</button></div>' +
@@ -973,10 +976,6 @@ function manageClick(e) {
 document.addEventListener('click', function (e) {
   if (e.target.closest('#admin-app') || e.target.closest('#order-app')) return;
   manageClick(e);
-});
-manageApp.addEventListener('change', function (e) {
-  const el = e.target.closest('#dish-cat-filter');
-  if (el) renderManage();
 });
 document.addEventListener('click', function (e) {
   const sw = e.target.closest('[data-act="me-status"]');
