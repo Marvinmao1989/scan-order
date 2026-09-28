@@ -230,7 +230,6 @@ img{display:block}
     <span id="nav-title" class="nav-title">扫码点餐</span>
     <nav class="nav-links" id="nav-links">
       <a data-route="order" href="#/order">点餐</a>
-      <a data-route="admin" href="#/admin">管理</a>
     </nav>
   </div>
 </header>
@@ -550,9 +549,7 @@ function renderOrder() {
     '<div class="order-body"><div class="cat-list">' + catHtml + '</div>' +
     '<div class="order-cats">' + (blockHtml || '<div class="empty">暂无菜品</div>') + '</div></div>' +
     '<div style="height:86px"></div>' +
-    cartBar +
-    '<div style="text-align:center;padding:20px 0 4px;font-size:12px;color:var(--muted)">' +
-    '<a href="#/admin" style="color:inherit;text-decoration:underline">店主入口</a></div>';
+    cartBar;
   // 顶栏固定后，左侧分类选项卡的 sticky 起点跟随头部高度
   const oh = app.querySelector('.order-head');
   const cl = app.querySelector('.cat-list');
