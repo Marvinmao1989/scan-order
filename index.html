@@ -109,18 +109,23 @@ img{display:block}
 .icon-btn:hover{background:var(--paper)}
 
 /* ===== 点餐页 ===== */
-.order-head{padding:18px 0 14px;display:flex;align-items:flex-start;gap:10px}
+.order-head{padding:18px 0 14px;display:flex;align-items:flex-start;gap:10px;position:sticky;top:52px;z-index:15;background:var(--paper)}
 .shop-name{font-size:24px;font-weight:900;letter-spacing:.5px}
+.shop-logo{height:48px;width:auto;max-width:200px;object-fit:contain;display:block}
 .announce{margin-top:6px;font-size:13px;color:var(--muted)}
 .table-chip{margin-left:auto;flex-shrink:0;background:var(--brand);color:#fff;font-size:13px;font-weight:800;padding:6px 12px;border-radius:999px}
 .order-body{display:flex;gap:14px;align-items:flex-start}
 .cat-list{width:96px;flex-shrink:0;position:sticky;top:68px}
 .cat-item{display:block;width:100%;text-align:center;padding:12px 8px;border-radius:10px;font-size:13px;color:var(--muted);margin-bottom:6px;background:var(--card);border:1px solid var(--line)}
 .cat-item.active{background:var(--brand);border-color:var(--brand);color:#fff;font-weight:800}
-.dish-grid{flex:1;display:grid;grid-template-columns:repeat(2,1fr);gap:12px;min-width:0}
+.order-cats{flex:1;min-width:0}
+.cat-block{scroll-margin-top:calc(52px + var(--ohh,70px) + 10px)}
+.cat-block-title{font-size:16px;font-weight:800;margin:6px 0 10px;padding-left:2px}
+.cat-empty{grid-column:1/-1;padding:30px 16px;text-align:center;color:var(--muted);font-size:13px;background:var(--card);border:1px dashed var(--line);border-radius:12px}
+.dish-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;min-width:0}
 .dish-card{position:relative;padding:0 0 10px;overflow:hidden;cursor:pointer}
-.dish-img{width:100%;height:96px;object-fit:cover;background:#EFE6DA}
-.dish-ph{width:100%;height:96px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:34px;font-weight:800}
+.dish-img{width:100%;height:106px;object-fit:cover;background:#EFE6DA}
+.dish-ph{width:100%;height:106px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:34px;font-weight:800}
 .dish-body{padding:8px 10px 0}
 .dish-name{font-size:15px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .dish-desc{font-size:12px;color:var(--muted);margin-top:3px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:32px}
@@ -506,36 +511,55 @@ async function loadOrder() {
 function renderOrder() {
   const app = document.getElementById('order-app');
   const { settings, categories, dishes, activeCat, tableNo } = orderState;
-  const visible = activeCat ? dishes.filter(d => String(d.category_id) === String(activeCat)) : dishes;
+  // 所有分类连续展示：每个分类一个区块；无菜品的分类显示"即将上新"
+  const byCat = {};
+  categories.forEach(function (c) { byCat[c.id] = []; });
+  dishes.forEach(function (d) { (byCat[d.category_id] = byCat[d.category_id] || []).push(d); });
   const catHtml = categories.map(c =>
     '<button class="cat-item' + (String(c.id) === String(activeCat) ? ' active' : '') + '" data-act="cat" data-id="' + c.id + '">' + esc(c.name) + '</button>'
   ).join('') || '<div class="empty" style="padding:24px 8px">暂无分类</div>';
-  const dishHtml = visible.length ? visible.map(d => {
-    const img = dishImgs(d)[0]
-      ? '<img class="dish-img" src="' + esc(dishImgs(d)[0]) + '" alt="' + esc(d.name) + '" loading="lazy">'
-      : '<div class="dish-ph" style="background:' + d.ph + '">' + esc(d.initial) + '</div>';
-    return '<div class="dish-card card" data-act="detail" data-id="' + d.id + '">' + img +
-      '<div class="dish-body"><div class="dish-name">' + esc(d.name) + '</div>' +
-      (d.description ? '<div class="dish-desc">' + esc(d.description) + '</div>' : '<div class="dish-desc"></div>') +
-      '</div><div class="dish-foot"><span class="price">' + money(d.price) + '</span>' +
-      '<button class="dish-add" data-act="add" data-id="' + d.id + '" aria-label="加菜">' +
-      '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button></div></div>';
-  }).join('') : '<div class="empty" style="grid-column:1/-1">这个分类还没有菜品</div>';
+  const blockHtml = categories.map(c => {
+    const list = byCat[c.id] || [];
+    const dishHtml = list.length ? list.map(d => {
+      const img = dishImgs(d)[0]
+        ? '<img class="dish-img" src="' + esc(dishImgs(d)[0]) + '" alt="' + esc(d.name) + '" loading="lazy">'
+        : '<div class="dish-ph" style="background:' + d.ph + '">' + esc(d.initial) + '</div>';
+      return '<div class="dish-card card" data-act="detail" data-id="' + d.id + '">' + img +
+        '<div class="dish-body"><div class="dish-name">' + esc(d.name) + '</div>' +
+        (d.description ? '<div class="dish-desc">' + esc(d.description) + '</div>' : '<div class="dish-desc"></div>') +
+        '</div><div class="dish-foot"><span class="price">' + money(d.price) + '</span>' +
+        '<button class="dish-add" data-act="add" data-id="' + d.id + '" aria-label="加菜">' +
+        '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button></div></div>';
+    }).join('') : '<div class="cat-empty">即将上新…</div>';
+    return '<div class="cat-block" id="cat-block-' + c.id + '" data-cat="' + c.id + '">' +
+      '<div class="cat-block-title">' + esc(c.name) + '</div>' +
+      '<div class="dish-grid">' + dishHtml + '</div></div>';
+  }).join('');
+  const head = settings.shop_logo_url
+    ? '<img class="shop-logo" src="' + esc(settings.shop_logo_url) + '" alt="' + esc(settings.shop_name || '') + '">'
+    : '<div class="shop-name">' + esc(settings.shop_name || '扫码点餐') + '</div>';
   const count = cartCount();
   const total = cartTotal();
   const cartBar = count > 0
     ? '<div class="cart-bar"><div class="cart-info"><div class="cart-count">已选 ' + count + ' 件</div><div class="cart-total">' + money(total) + '</div></div><button class="cart-go" data-act="openCart">去下单</button></div>'
     : '';
   app.innerHTML =
-    '<div class="order-head"><div><div class="shop-name">' + esc(settings.shop_name || '扫码点餐') + '</div>' +
+    '<div class="order-head"><div>' + head +
     (settings.announcement ? '<div class="announce">' + esc(settings.announcement) + '</div>' : '') +
     '</div><span class="table-chip">' + esc(tableNo) + ' 号桌</span></div>' +
     '<div class="order-body"><div class="cat-list">' + catHtml + '</div>' +
-    '<div class="dish-grid">' + dishHtml + '</div></div>' +
+    '<div class="order-cats">' + (blockHtml || '<div class="empty">暂无菜品</div>') + '</div></div>' +
     '<div style="height:86px"></div>' +
     cartBar +
     '<div style="text-align:center;padding:20px 0 4px;font-size:12px;color:var(--muted)">' +
     '<a href="#/admin" style="color:inherit;text-decoration:underline">店主入口</a></div>';
+  // 顶栏固定后，左侧分类选项卡的 sticky 起点跟随头部高度
+  const oh = app.querySelector('.order-head');
+  const cl = app.querySelector('.cat-list');
+  if (oh && cl) {
+    document.documentElement.style.setProperty('--ohh', oh.offsetHeight + 'px');
+    cl.style.top = (52 + oh.offsetHeight) + 'px';
+  }
 }
 function addDish(id) {
   const d = orderState.dishes.find(x => String(x.id) === String(id));
@@ -707,7 +731,12 @@ orderApp.addEventListener('click', function (e) {
   if (!el) return;
   const act = el.dataset.act;
   const id = el.dataset.id;
-  if (act === 'cat') { orderState.activeCat = id; renderOrder(); }
+  if (act === 'cat') {
+    orderState.activeCat = id;
+    document.querySelectorAll('.cat-item').forEach(function (b) { b.classList.toggle('active', String(b.dataset.id) === String(id)); });
+    const blk = document.getElementById('cat-block-' + id);
+    if (blk) blk.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
   else if (act === 'add') addDish(id);
   else if (act === 'detail') showDishDetail(id);
   else if (act === 'openCart') openCart();
@@ -716,6 +745,22 @@ orderApp.addEventListener('click', function (e) {
   else if (act === 'submit') doSubmit();
   else if (act === 'showHistory') showHistory();
 });
+// 连续页面滚动时，左侧分类选项卡跟随当前看到的分类高亮
+function updateCatHighlight() {
+  if (currentRoute() !== 'order') return;
+  const blocks = document.querySelectorAll('.cat-block');
+  if (!blocks.length) return;
+  let cur = null;
+  blocks.forEach(function (b) {
+    if (b.getBoundingClientRect().top <= 130) cur = b.dataset.cat;
+  });
+  if (!cur) cur = blocks[0].dataset.cat;
+  if (String(cur) !== String(orderState.activeCat)) {
+    orderState.activeCat = cur;
+    document.querySelectorAll('.cat-item').forEach(function (b) { b.classList.toggle('active', String(b.dataset.id) === String(cur)); });
+  }
+}
+window.addEventListener('scroll', updateCatHighlight, { passive: true });
 document.addEventListener('click', function (e) {
   const el = e.target.closest('[data-act="close"]');
   if (el) closeSheet();
@@ -743,8 +788,26 @@ document.addEventListener('click', function (e) {
 });
 
 // ==================== 接单台 ====================
-const adminState = { orders: [], tab: 'all', timer: null, known: {}, dateFilter: todayStr() };
+const adminState = { orders: [], tab: 'all', timer: null, known: {}, dateFilter: todayStr(), alerting: {}, alertCount: 0, alertTimer: null };
 const ADMIN_TABS = [['all', '全部'], ['1', '新订单'], ['2', '制作中'], ['3', '已完成'], ['0', '已取消']];
+// 新订单提示音：每 1.5 秒响 1 次，最多 10 次后自动停止；或管理员把订单设为"制作中/完成/取消"后立即停止
+function startAlertLoop() {
+  if (adminState.alertTimer) return;
+  adminState.alertCount = 0;
+  adminState.alertTimer = setInterval(function () {
+    if (!Object.keys(adminState.alerting).length || adminState.alertCount >= 10) { stopAlertLoop(); return; }
+    beep();
+    adminState.alertCount++;
+  }, 1500);
+}
+function stopAlertLoop() {
+  if (adminState.alertTimer) { clearInterval(adminState.alertTimer); adminState.alertTimer = null; }
+  adminState.alertCount = 0;
+}
+function stopAlertForOrder(id) {
+  delete adminState.alerting[id];
+  if (!Object.keys(adminState.alerting).length) stopAlertLoop();
+}
 
 function loginCard(sub) {
   return '<div class="login-card card"><div class="login-title">店主登录</div>' +
@@ -787,7 +850,11 @@ async function fetchOrders(initial) {
     const rows = await dbGet('orders', 'select=*,order_items(*)&order=id.desc&limit=200');
     if (!initial) {
       const fresh = rows.filter(o => !adminState.known[o.id]);
-      if (fresh.length) { beep(); toast('收到新订单 #' + fresh.map(o => o.id).join(' #')); }
+      if (fresh.length) {
+        fresh.forEach(o => { adminState.alerting[o.id] = true; });
+        startAlertLoop();
+        toast('收到新订单 #' + fresh.map(o => o.id).join(' #'));
+      }
     }
     rows.forEach(o => { adminState.known[o.id] = true; });
     adminState.orders = rows;
@@ -830,6 +897,7 @@ function orderCardHtml(o) {
   } else if (o.status === 3) {
     acts = (o.pay_status === 0 ? '<button class="btn btn-primary btn-mini" data-act="pay" data-id="' + o.id + '">确认收款</button>' : '');
   }
+  acts += '<button class="btn btn-danger btn-mini" data-act="delOrder" data-id="' + o.id + '">删除</button>';
   return '<div class="card order-card' + (o.status === 1 ? ' new' : '') + '">' +
     '<div class="order-top"><span class="order-table">' + esc(o.table_no) + ' 桌</span>' +
     '<span class="order-time">#' + o.id + ' · ' + fmtDateTime(o.created_at) + '</span>' +
@@ -857,7 +925,7 @@ adminApp.addEventListener('click', function (e) {
     const email = document.getElementById('login-email').value.trim();
     const pass = document.getElementById('login-pass').value;
     if (!email || !pass) { toast('请输入邮箱和密码', true); return; }
-    login(email, pass).then(function () { toast('登录成功'); loadAdmin(); }).catch(function (err) { toast('登录失败：' + err.message, true); });
+    login(email, pass).then(function () { localStorage.setItem('sco_email', email); toast('登录成功'); loadAdmin(); }).catch(function (err) { toast('登录失败：' + err.message, true); });
   }
   else if (act === 'logout') { logoutLocal(); toast('已退出'); loadAdmin(); }
   else if (act === 'gotoManage') { go('manage'); }
@@ -875,9 +943,33 @@ adminApp.addEventListener('click', function (e) {
   }
   else if (act === 'tab') { adminState.tab = el.dataset.tab; renderAdmin(); renderAdminTabs(); }
   else if (act === 'pay') patchOrder(id, { pay_status: 1 }, '已确认收款');
-  else if (act === 'start') patchOrder(id, { status: 2 }, '开始制作');
-  else if (act === 'done') patchOrder(id, { status: 3 }, '订单已完成');
-  else if (act === 'cancel') patchOrder(id, { status: 0 }, '订单已取消');
+  else if (act === 'start') { patchOrder(id, { status: 2 }, '开始制作'); stopAlertForOrder(id); }
+  else if (act === 'done') { patchOrder(id, { status: 3 }, '订单已完成'); stopAlertForOrder(id); }
+  else if (act === 'cancel') { patchOrder(id, { status: 0 }, '订单已取消'); stopAlertForOrder(id); }
+  else if (act === 'delOrder') {
+    openModal('删除订单',
+      '<div class="muted" style="font-size:13px;line-height:1.7;margin-bottom:12px">删除后不可恢复，确定要删除订单 #' + esc(id) + ' 吗？</div>' +
+      '<div class="form-item"><label>管理员密码</label><input id="del-pass" type="password" placeholder="输入店主账号密码" autocomplete="off"></div>' +
+      '<div class="row"><button class="btn btn-ghost" data-act="mclose">取消</button>' +
+      '<button class="btn btn-danger" data-act="confirmDelOrder" data-id="' + id + '">确认删除</button></div>');
+  }
+});
+// 删除订单确认：密码需与店主账号一致（用 Supabase 登录校验）
+document.addEventListener('click', function (e) {
+  const el = e.target.closest('[data-act="confirmDelOrder"]');
+  if (!el) return;
+  const pass = document.getElementById('del-pass');
+  if (!pass || !pass.value) { toast('请输入管理员密码', true); return; }
+  const email = localStorage.getItem('sco_email') || '';
+  if (!email) { toast('未记录管理员邮箱，请退出后重新登录', true); return; }
+  login(email, pass.value).then(function () {
+    return dbDelete('orders', Number(el.dataset.id));
+  }).then(function () {
+    stopAlertForOrder(el.dataset.id);
+    toast('订单已删除');
+    closeSheet();
+    fetchOrders(false);
+  }).catch(function (err) { toast('删除失败（密码错误或网络问题）：' + err.message, true); });
 });
 function renderAdminTabs() {
   document.querySelectorAll('#admin-tabs .tab-pill').forEach(b => b.classList.toggle('active', b.dataset.tab === adminState.tab));
@@ -949,10 +1041,13 @@ function renderManage() {
       ).join('') : '<div class="empty">还没有分类，点右上角新增</div>') + '</div>';
   } else {
     body.innerHTML =
-      '<div class="form-item"><label>店铺名称</label><input id="set-name" type="text" value="' + esc(settings.shop_name || '') + '" maxlength="30"></div>' +
+      '<div class="form-item"><label>店铺名称（文字）</label><input id="set-name" type="text" value="' + esc(settings.shop_name || '') + '" maxlength="30" placeholder="如：桌迷藏·桌游吧"></div>' +
+      '<div class="form-item"><label>店铺 LOGO 图片（可选，上传后顾客端优先显示 LOGO）</label><div id="logo-uploader"></div></div>' +
       '<div class="form-item"><label>公告 / 欢迎语</label><textarea id="set-ann" maxlength="100">' + esc(settings.announcement || '') + '</textarea></div>' +
       '<div class="form-item"><label>收款码图片（下单后展示给顾客扫码付款）</label><div id="code-uploader"></div></div>' +
       '<button class="btn btn-primary btn-block" data-act="saveSettings" style="padding:13px">保存设置</button>';
+    const lup = body.querySelector('#logo-uploader');
+    lup.innerHTML = logoUploaderHtml(settings.shop_logo_url);
     const up = body.querySelector('#code-uploader');
     up.innerHTML = codeUploaderHtml(settings.collection_code_url);
   }
@@ -984,6 +1079,13 @@ function codeUploaderHtml(url) {
     (url ? '<img src="' + esc(url) + '" alt="收款码">' : '') +
     '<div>' + (url ? '已上传，点击更换' : '点击上传收款码图片') + '</div>' +
     (url ? '<button class="btn btn-ghost btn-mini" data-act="removeCode" style="margin-top:8px">移除</button>' : '') +
+    '</div>';
+}
+function logoUploaderHtml(url) {
+  return '<div class="uploader" data-act="pickLogo">' +
+    (url ? '<img src="' + esc(url) + '" alt="店铺LOGO">' : '') +
+    '<div>' + (url ? '已上传，点击更换' : '点击上传店铺 LOGO 图片') + '</div>' +
+    (url ? '<button class="btn btn-ghost btn-mini" data-act="removeLogo" style="margin-top:8px">移除（改回显示文字名称）</button>' : '') +
     '</div>';
 }
 function openModal(title, inner) {
@@ -1127,13 +1229,31 @@ function manageClick(e) {
     const up = document.getElementById('code-uploader');
     if (up) up.innerHTML = codeUploaderHtml('');
   }
+  else if (act === 'pickLogo') {
+    const inp = document.createElement('input');
+    inp.type = 'file'; inp.accept = 'image/*';
+    inp.onchange = function () {
+      uploadFor(inp, function (url) {
+        manageState.settings.shop_logo_url = url;
+        const up = document.getElementById('logo-uploader');
+        if (up) up.innerHTML = logoUploaderHtml(url);
+      });
+    };
+    inp.click();
+  }
+  else if (act === 'removeLogo') {
+    manageState.settings.shop_logo_url = '';
+    const up = document.getElementById('logo-uploader');
+    if (up) up.innerHTML = logoUploaderHtml('');
+  }
   else if (act === 'saveSettings') {
     const payload = {
       shop_name: document.getElementById('set-name').value.trim(),
+      shop_logo_url: manageState.settings.shop_logo_url || '',
       announcement: document.getElementById('set-ann').value.trim(),
       collection_code_url: manageState.settings.collection_code_url || ''
     };
-    if (!payload.shop_name) { toast('店铺名称不能为空', true); return; }
+    if (!payload.shop_name && !payload.shop_logo_url) { toast('店铺名称或 LOGO 至少填一项', true); return; }
     const p = manageState.settings.id
       ? dbUpdate('settings', manageState.settings.id, payload)
       : dbInsert('settings', Object.assign({ id: 1 }, payload));

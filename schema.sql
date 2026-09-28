@@ -60,9 +60,12 @@ create table if not exists order_items (
 create table if not exists settings (
   id int primary key,
   shop_name text default '我的小店',
+  shop_logo_url text default '',
   announcement text default '',
   collection_code_url text default ''
 );
+-- 已建过库时补充店铺 LOGO 字段（重复运行无影响）
+alter table settings add column if not exists shop_logo_url text default '';
 
 -- 3) 行级安全（RLS）：顾客只能读菜单、提交订单；店主（登录用户）可管理一切
 alter table categories enable row level security;
