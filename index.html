@@ -709,6 +709,7 @@ orderApp.addEventListener('click', function (e) {
   if (act === 'cat') {
     orderState.activeCat = id;
     document.querySelectorAll('.cat-item').forEach(function (b) { b.classList.toggle('active', String(b.dataset.id) === String(id)); });
+    catLockUntil = Date.now() + 1000;
     const blk = document.getElementById('cat-block-' + id);
     if (blk) blk.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
@@ -721,26 +722,36 @@ orderApp.addEventListener('click', function (e) {
   else if (act === 'showHistory') showHistory();
 });
 // 连续页面滚动时，左侧分类选项卡跟随当前看到的分类高亮
+let catLockUntil = 0;
 function updateCatHighlight() {
+  // 点击分类后的短暂锁定：平滑滚动途中不反复改写高亮，滚动停止(scrollend)即解锁
+  if (Date.now() < catLockUntil) return;
   if (currentRoute() !== 'order') return;
   const blocks = document.querySelectorAll('.cat-block');
   if (!blocks.length) return;
-  // 高亮判定线 = 固定顶栏(52px) + 店铺信息头实际高度，与左侧分类选项卡的 sticky 起点一致
+  // 高亮判定线 = 固定顶栏(52px) + 店铺信息头实际高度 + 2px 容差
+  // （+2px：避免目标分类上方紧邻块的底部恰好贴住判定线而被误选，导致高亮错一格/抖动）
   const oh = document.querySelector('.order-head');
-  const line = 52 + (oh ? oh.offsetHeight : 70);
+  const line = 52 + (oh ? oh.offsetHeight : 70) + 2;
   let cur = null;
-  // 取第一个“底边仍在判定线以下”的分类块：它正是当前视野顶部正在看的分类
-  for (let i = 0; i < blocks.length; i++) {
-    if (blocks[i].getBoundingClientRect().bottom > line) { cur = blocks[i].dataset.cat; break; }
+  // 已滚动到页面底部 → 直接高亮最后一个分类
+  if (window.scrollY > 10 && window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 4) {
+    cur = blocks[blocks.length - 1].dataset.cat;
+  } else {
+    // 取第一个“底边仍在判定线以下”的分类块：它正是当前视野顶部正在看的分类
+    for (let i = 0; i < blocks.length; i++) {
+      if (blocks[i].getBoundingClientRect().bottom > line) { cur = blocks[i].dataset.cat; break; }
+    }
+    // 所有分类块都已滚过判定线 → 高亮最后一个分类
+    if (!cur) cur = blocks[blocks.length - 1].dataset.cat;
   }
-  // 所有分类块都已滚过判定线（已滚到最底部）→ 高亮最后一个分类
-  if (!cur) cur = blocks[blocks.length - 1].dataset.cat;
   if (String(cur) !== String(orderState.activeCat)) {
     orderState.activeCat = cur;
     document.querySelectorAll('.cat-item').forEach(function (b) { b.classList.toggle('active', String(b.dataset.id) === String(cur)); });
   }
 }
 window.addEventListener('scroll', updateCatHighlight, { passive: true });
+window.addEventListener('scrollend', function () { catLockUntil = 0; });
 document.addEventListener('click', function (e) {
   const el = e.target.closest('[data-act="close"]');
   if (el) closeSheet();
