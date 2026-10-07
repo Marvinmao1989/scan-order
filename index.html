@@ -34,7 +34,6 @@ input,textarea,select{font:inherit;color:inherit}
 a{color:inherit;text-decoration:none}
 :focus-visible{outline:2px solid var(--brand);outline-offset:2px}
 img{display:block}
-
 /* ===== 顶栏 ===== */
 .topbar{position:sticky;top:0;z-index:20;background:var(--brand);color:#fff}
 .topbar-inner{max-width:1080px;margin:0 auto;padding:0 16px;height:52px;display:flex;align-items:center;gap:14px}
@@ -45,13 +44,11 @@ img{display:block}
 }
 .nav-links a:hover{opacity:1;background:rgba(255,255,255,.14)}
 .nav-links a.active{opacity:1;background:rgba(255,255,255,.2);font-weight:700}
-
 /* ===== 视图切换 ===== */
 .view{display:none}
 .view.active{display:block}
 .container{max-width:1080px;margin:0 auto;padding:16px}
 .phone{max-width:560px;margin:0 auto}
-
 /* ===== 通用 ===== */
 .card{background:var(--card);border:1px solid var(--line);border-radius:14px}
 .muted{color:var(--muted)}
@@ -95,7 +92,6 @@ img{display:block}
 .tab-pill{padding:8px 16px;border-radius:999px;font-size:14px;font-weight:700;border:1px solid var(--line);color:var(--muted);background:var(--card)}
 .tab-pill.active{background:var(--brand);border-color:var(--brand);color:#fff}
 .toolbar{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap}
-
 /* ===== 弹层 ===== */
 .overlay{position:fixed;inset:0;background:rgba(38,24,10,.45);z-index:40;display:flex;justify-content:center;align-items:flex-end}
 .overlay.center{align-items:center;padding:16px}
@@ -107,7 +103,6 @@ img{display:block}
 .sheet-title,.modal-title{font-size:17px;font-weight:800}
 .icon-btn{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--muted)}
 .icon-btn:hover{background:var(--paper)}
-
 /* ===== 点餐页 ===== */
 .order-head{padding:18px 0 14px;display:flex;align-items:flex-start;gap:10px;position:sticky;top:52px;z-index:15;background:var(--paper)}
 .shop-name{font-size:24px;font-weight:900;letter-spacing:.5px}
@@ -164,7 +159,6 @@ img{display:block}
 .success-mark{width:64px;height:64px;border-radius:50%;background:var(--ok-bg);color:var(--ok);display:flex;align-items:center;justify-content:center;margin:6px auto 14px}
 .pay-hint{border:1px dashed #E3B77E;background:var(--warn-bg);border-radius:12px;padding:12px 14px;font-size:13px;color:#8A4B0B;line-height:1.7;margin:12px 0}
 .pay-hint img{width:120px;height:120px;object-fit:contain;margin:10px auto 0;border-radius:8px;background:#fff}
-
 /* ===== 接单台 ===== */
 .stats{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:16px}
 .stat{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
@@ -183,7 +177,6 @@ img{display:block}
 .order-foot{display:flex;align-items:center;gap:10px;margin-top:10px;flex-wrap:wrap}
 .order-total{font-size:17px;font-weight:900;color:var(--brand);margin-right:auto}
 .actions{display:flex;gap:8px;flex-wrap:wrap}
-
 /* ===== 菜单管理 ===== */
 .mlist{display:flex;flex-direction:column;gap:10px}
 .mrow{display:flex;align-items:center;gap:12px;padding:12px}
@@ -206,7 +199,6 @@ img{display:block}
 .detail-thumbs{display:flex;gap:8px;padding:10px 16px 2px;background:var(--card);overflow-x:auto}
 .detail-thumb{width:56px;height:56px;object-fit:cover;border-radius:10px;cursor:pointer;opacity:.65;border:2px solid transparent;flex-shrink:0;background:#EFE6DA}
 .detail-thumb.on{opacity:1;border-color:var(--brand)}
-
 /* ===== Toast ===== */
 #toast-root{position:fixed;top:64px;left:50%;transform:translateX(-50%);z-index:60;display:flex;flex-direction:column;gap:8px;align-items:center;pointer-events:none}
 .toast{background:var(--ink);color:#fff;font-size:13px;padding:10px 16px;border-radius:999px;box-shadow:var(--shadow);animation:up .2s ease-out}
@@ -214,7 +206,6 @@ img{display:block}
 .login-card{max-width:380px;margin:40px auto;padding:24px}
 .login-title{font-size:19px;font-weight:900;margin-bottom:4px}
 .login-sub{font-size:13px;color:var(--muted);margin-bottom:18px;line-height:1.7}
-
 @media (min-width:760px){
   .stats{grid-template-columns:repeat(4,1fr)}
 }
@@ -224,7 +215,6 @@ img{display:block}
 </style>
 </head>
 <body>
-
 <header class="topbar">
   <div class="topbar-inner">
     <span id="nav-title" class="nav-title">扫码点餐</span>
@@ -233,16 +223,13 @@ img{display:block}
     </nav>
   </div>
 </header>
-
 <main>
   <section id="view-order" class="view"><div id="order-app" class="container phone"></div></section>
   <section id="view-admin" class="view"><div id="admin-app" class="container"></div></section>
   <section id="view-manage" class="view"><div id="manage-app" class="container"></div></section>
 </main>
-
 <div id="modal-root"></div>
 <div id="toast-root"></div>
-
 <script>
 'use strict';
 // ==================== 必填配置 ====================
@@ -251,11 +238,9 @@ const CONFIG = {
   SUPABASE_URL: 'https://fntnhbbggpkyzdbuygsw.supabase.co',   // 例：https://abc123.supabase.co
   SUPABASE_ANON_KEY: 'sb_publishable_H8MI75k0EnYMFIC2JFmJdg_l9OQGCZ_'
 };
-
 const TOKEN = { access: 'sco_access', refresh: 'sco_refresh', expiry: 'sco_expiry' };
 const CART_KEY = 'sco_cart';
 const ORDERS_KEY = 'sco_my_orders';
-
 // ==================== 工具函数 ====================
 function cfgReady() {
   return CONFIG.SUPABASE_URL.indexOf('YOUR-PROJECT') === -1 &&
@@ -298,7 +283,6 @@ function orderLocalDate(iso) {
   const p = n => (n < 10 ? '0' + n : n);
   return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate());
 }
-
 // ==================== Supabase 接口封装 ====================
 async function sbFetch(path, { method = 'GET', body, token, headers = {} } = {}) {
   const h = Object.assign({ apikey: CONFIG.SUPABASE_ANON_KEY, 'Content-Type': 'application/json' }, headers);
@@ -414,7 +398,6 @@ function beep() {
     });
   } catch (e) {}
 }
-
 // ==================== 路由 ====================
 const ROUTES = ['order', 'admin', 'manage'];
 function currentRoute() {
@@ -433,7 +416,6 @@ function render() {
   if (r === 'manage') loadManage();
 }
 window.addEventListener('hashchange', render);
-
 // ==================== 弹层 ====================
 function openOverlay(html, center) {
   document.getElementById('modal-root').innerHTML =
@@ -442,7 +424,6 @@ function openOverlay(html, center) {
 function closeSheet() {
   document.getElementById('modal-root').innerHTML = '';
 }
-
 // ==================== 点餐页 ====================
 const orderState = {
   settings: { shop_name: '扫码点餐', announcement: '' },
@@ -460,7 +441,6 @@ function saveCart() { localStorage.setItem(CART_KEY, JSON.stringify(orderState.c
 function cartList() { return Object.values(orderState.cart); }
 function cartCount() { return cartList().reduce((s, it) => s + it.qty, 0); }
 function cartTotal() { return round2(cartList().reduce((s, it) => s + it.price * it.qty, 0)); }
-
 const PH_COLORS = ['#F2A48E', '#E8B86D', '#8FBF7F', '#7FA8D9', '#B09AE0', '#6FC0B0', '#E08A9E', '#C9A86A'];
 function dishImgs(d) {
   if (Array.isArray(d.image_urls)) {
@@ -477,7 +457,6 @@ function customerId() {
   }
   return id;
 }
-
 async function loadOrder() {
   const app = document.getElementById('order-app');
   if (!cfgReady()) {
@@ -528,7 +507,7 @@ function renderOrder() {
         (d.description ? '<div class="dish-desc">' + esc(d.description) + '</div>' : '<div class="dish-desc"></div>') +
         '</div><div class="dish-foot"><span class="price">' + money(d.price) + '</span>' +
         '<button class="dish-add" data-act="add" data-id="' + d.id + '" aria-label="加菜">' +
-        '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button></div></div>';
+        '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14" /></svg></button></div></div>';
     }).join('') : '<div class="cat-empty">即将上新…</div>';
     return '<div class="cat-block" id="cat-block-' + c.id + '" data-cat="' + c.id + '">' +
       '<div class="cat-block-title">' + esc(c.name) + '</div>' +
@@ -613,11 +592,11 @@ function showDishDetail(id) {
   openOverlay(
     '<div class="detail-modal">' +
     '<div style="position:relative">' + img +
-    '<button class="icon-btn" data-act="close" aria-label="关闭" style="position:absolute;top:12px;right:12px;background:rgba(255,255,255,.92);color:var(--ink)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>' +
+    '<button class="icon-btn" data-act="close" aria-label="关闭" style="position:absolute;top:12px;right:12px;background:rgba(255,255,255,.92);color:var(--ink)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18" /></svg></button></div>' +
     thumbs +
     '<div class="detail-body"><div class="detail-name">' + esc(d.name) + '</div>' +
     '<div class="detail-price">' + money(d.price) + '</div>' + body + '</div>' +
-    '<div class="detail-foot"><button class="detail-add" data-act="add" data-id="' + d.id + '"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>加入购物车</button></div></div>',
+    '<div class="detail-foot"><button class="detail-add" data-act="add" data-id="' + d.id + '"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14" /></svg>加入购物车</button></div></div>',
     true
   );
 }
@@ -638,7 +617,7 @@ function renderCartSheet(note) {
     '<div class="sheet"><div class="sheet-head"><span class="sheet-title">确认点餐</span>' +
     '<span style="display:flex;gap:8px;align-items:center">' +
     (items.length ? '<button class="btn btn-ghost btn-mini" data-act="clearCart" style="padding:5px 12px">清空</button>' : '') +
-    '<button class="icon-btn" data-act="close" aria-label="关闭"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></span></div>' +
+    '<button class="icon-btn" data-act="close" aria-label="关闭"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18" /></svg></button></span></div>' +
     list +
     '<textarea class="cart-note form-item" id="order-note" placeholder="备注（选填）：口味、忌口…" rows="2" style="width:100%;border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:14px">' + (note ? esc(note) : '') + '</textarea>' +
     '<div class="cart-foot"><span class="muted" style="font-size:13px">共 ' + cartCount() + ' 件</span>' +
@@ -679,7 +658,7 @@ function showSuccess(id, total) {
     : '<div class="pay-hint">请到柜台扫码支付 <b>' + money(total) + '</b>，并告知店员订单号。</div>';
   openOverlay(
     '<div class="sheet" style="border-radius:18px;max-width:440px"><div class="success-mark">' +
-    '<svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5L20 6.5"/></svg></div>' +
+    '<svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5L20 6.5" /></svg></div>' +
     '<div style="text-align:center"><div class="sheet-title">下单成功</div>' +
     '<div class="muted" style="font-size:13px;margin-top:4px">' + esc(orderState.tableNo) + ' 号桌</div>' +
     '<div style="font-size:34px;font-weight:900;margin:12px 0 2px">#' + id + '</div>' +
@@ -717,11 +696,10 @@ async function showHistory() {
   }
   openOverlay(
     '<div class="sheet"><div class="sheet-head"><span class="sheet-title">我的订单</span>' +
-    '<button class="icon-btn" data-act="close" aria-label="关闭"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>' +
+    '<button class="icon-btn" data-act="close" aria-label="关闭"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18" /></svg></button></div>' +
     list + '<div class="muted" style="font-size:12px;line-height:1.7;padding-top:10px">订单状态以店员叫号/管理后台为准。此列表按你的手机身份保存，换设备后看不到旧订单。</div></div>'
   );
 }
-
 const orderApp = document.getElementById('order-app');
 orderApp.addEventListener('click', function (e) {
   const el = e.target.closest('[data-act]');
@@ -747,11 +725,16 @@ function updateCatHighlight() {
   if (currentRoute() !== 'order') return;
   const blocks = document.querySelectorAll('.cat-block');
   if (!blocks.length) return;
+  // 高亮判定线 = 固定顶栏(52px) + 店铺信息头实际高度，与左侧分类选项卡的 sticky 起点一致
+  const oh = document.querySelector('.order-head');
+  const line = 52 + (oh ? oh.offsetHeight : 70);
   let cur = null;
-  blocks.forEach(function (b) {
-    if (b.getBoundingClientRect().top <= 130) cur = b.dataset.cat;
-  });
-  if (!cur) cur = blocks[0].dataset.cat;
+  // 取第一个“底边仍在判定线以下”的分类块：它正是当前视野顶部正在看的分类
+  for (let i = 0; i < blocks.length; i++) {
+    if (blocks[i].getBoundingClientRect().bottom > line) { cur = blocks[i].dataset.cat; break; }
+  }
+  // 所有分类块都已滚过判定线（已滚到最底部）→ 高亮最后一个分类
+  if (!cur) cur = blocks[blocks.length - 1].dataset.cat;
   if (String(cur) !== String(orderState.activeCat)) {
     orderState.activeCat = cur;
     document.querySelectorAll('.cat-item').forEach(function (b) { b.classList.toggle('active', String(b.dataset.id) === String(cur)); });
@@ -783,7 +766,6 @@ document.addEventListener('click', function (e) {
   else if (act === 'submit') doSubmit();
   else if (act === 'showHistory') showHistory();
 });
-
 // ==================== 接单台 ====================
 const adminState = { orders: [], tab: 'all', timer: null, known: {}, dateFilter: todayStr(), alerting: {}, alertCount: 0, alertTimer: null };
 const ADMIN_TABS = [['all', '全部'], ['1', '新订单'], ['2', '制作中'], ['3', '已完成'], ['0', '已取消']];
@@ -805,7 +787,6 @@ function stopAlertForOrder(id) {
   delete adminState.alerting[id];
   if (!Object.keys(adminState.alerting).length) stopAlertLoop();
 }
-
 function loginCard(sub) {
   return '<div class="login-card card"><div class="login-title">店主登录</div>' +
     '<div class="login-sub">' + sub + '</div>' +
@@ -911,7 +892,6 @@ async function patchOrder(id, patch, msg) {
     await fetchOrders(false);
   } catch (e) { toast('操作失败：' + e.message, true); }
 }
-
 const adminApp = document.getElementById('admin-app');
 adminApp.addEventListener('click', function (e) {
   const el = e.target.closest('[data-act]');
@@ -971,10 +951,8 @@ document.addEventListener('click', function (e) {
 function renderAdminTabs() {
   document.querySelectorAll('#admin-tabs .tab-pill').forEach(b => b.classList.toggle('active', b.dataset.tab === adminState.tab));
 }
-
 // ==================== 菜单管理 ====================
 const manageState = { categories: [], dishes: [], tab: 'dishes', settings: {}, editing: null, pendingImages: [], catFilter: '' };
-
 async function loadManage() {
   const app = document.getElementById('manage-app');
   if (!cfgReady()) { app.innerHTML = setupBanner(); return; }
@@ -1064,7 +1042,7 @@ function imgCellsHtml(imgs) {
   return imgs.map(function (u, i) {
     return '<div class="img-cell"><img src="' + esc(u) + '" alt=""><button class="img-del" data-act="rmDishImg" data-idx="' + i + '">×</button></div>';
   }).join('') +
-    (imgs.length < 3 ? '<div class="img-add" data-act="pickDishImg"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>添加图片</div>' : '');
+    (imgs.length < 3 ? '<div class="img-add" data-act="pickDishImg"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14" /></svg>添加图片</div>' : '');
 }
 function renderDishImgGrid() {
   const box = document.getElementById('me-imgs');
@@ -1087,7 +1065,7 @@ function logoUploaderHtml(url) {
 }
 function openModal(title, inner) {
   openOverlay('<div class="modal"><div class="modal-head"><span class="modal-title">' + title + '</span>' +
-    '<button class="icon-btn" data-act="mclose" aria-label="关闭"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>' +
+    '<button class="icon-btn" data-act="mclose" aria-label="关闭"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18" /></svg></button></div>' +
     inner + '</div>', true);
 }
 function dishModalHtml(d, categories) {
@@ -1121,7 +1099,6 @@ async function uploadFor(inputEl, cb) {
     toast('图片已上传');
   } catch (e) { toast('上传失败：' + e.message, true); }
 }
-
 const manageApp = document.getElementById('manage-app');
 function manageClick(e) {
   const el = e.target.closest('[data-act]');
@@ -1270,7 +1247,6 @@ document.addEventListener('click', function (e) {
 document.addEventListener('click', function (e) {
   if (e.target.closest('[data-act="mclose"]')) closeSheet();
 });
-
 render();
 </script>
 </body>
